@@ -85,10 +85,12 @@ def main():
     mu = np.float32(0.9)
 
     N = Xtrain.shape[0]
-    batch_sz = 500
+   #batch_sz = 500
+    batch_sz = 60
     n_batches = N // batch_sz
 
-    M = 500
+    #M = 500
+    M = 30
     K = 10
     poolsz = (2, 2)
 
@@ -173,7 +175,7 @@ def main():
         for j in range(n_batches):
             Xbatch = Xtrain[j*batch_sz:(j*batch_sz + batch_sz),]
             Ybatch = Ytrain[j*batch_sz:(j*batch_sz + batch_sz),]
-
+            print("Elapsed time:", (datetime.now() - t0))
             train(Xbatch, Ybatch)
             if j % print_period == 0:
                 cost_val, prediction_val = get_prediction(Xtest, Ytest)

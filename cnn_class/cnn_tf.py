@@ -49,6 +49,7 @@ def rearrange(X):
 
 
 def main():
+    tf.compat.v1.disable_eager_execution()
     train, test = get_data()
 
     # Need to scale! don't leave as 0..255
@@ -103,8 +104,8 @@ def main():
 
     # define variables and expressions
     # using None as the first shape element takes up too much RAM unfortunately
-    X = tf.placeholder(tf.float32, shape=(batch_sz, 32, 32, 3), name='X')
-    T = tf.placeholder(tf.int32, shape=(batch_sz,), name='T')
+    X = tf.compat.v1.placeholder(tf.float32, shape=(batch_sz, 32, 32, 3), name='X')
+    T = tf.compat.v1.placeholder(tf.int32, shape=(batch_sz,), name='T')
     W1 = tf.Variable(W1_init.astype(np.float32))
     b1 = tf.Variable(b1_init.astype(np.float32))
     W2 = tf.Variable(W2_init.astype(np.float32))
@@ -128,7 +129,7 @@ def main():
         )
     )
 
-    train_op = tf.train.RMSPropOptimizer(0.0001, decay=0.99, momentum=0.9).minimize(cost)
+    train_op = tf.compat.v1.train.RMSPropOptimizer(0.0001, decay=0.99, momentum=0.9).minimize(cost)
 
     # we'll use this to calculate the error rate
     predict_op = tf.argmax(Yish, 1)
@@ -137,8 +138,8 @@ def main():
     LL = []
     W1_val = None
     W2_val = None
-    init = tf.global_variables_initializer()
-    with tf.Session() as session:
+    init = tf.compat.v1.global_variables_initializer()
+    with tf.compat.v1.Session() as session:
         session.run(init)
 
         for i in range(max_iter):

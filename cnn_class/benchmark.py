@@ -9,6 +9,7 @@ from builtins import range
 
 import os
 import numpy as np
+#import random
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
@@ -57,13 +58,16 @@ def get_data():
 
     train = loadmat('../large_files/train_32x32.mat')
     test  = loadmat('../large_files/test_32x32.mat')
+    print('loaded data')
     return train, test
 
 
 def main():
+    tf.compat.v1.disable_eager_execution()
     train, test = get_data()
-    
 
+    print("Train labels : " , train.keys())
+    print ("Train shape : ", train['X'].shape,train['y'].shape)
     # Need to scale! don't leave as 0..255
     # Y is a N x 1 matrix with values 1..10 (MATLAB indexes by 1)
     # So flatten it and make it 0..9
@@ -74,11 +78,19 @@ def main():
 
     Xtest  = flatten(test['X'].astype(np.float32) / 255.)
     Ytest  = test['y'].flatten() - 1
+    #plt.plot(test['y'])
+    plt.show()
 
+    print( train['y'][0:10])
+    for i in range(0,11):
+        plt.imshow(np.squeeze( train['X'][:,:,:,i] ))
+        plt.show(block=False)
     # gradient descent params
     max_iter = 20
     print_period = 10
     N, D = Xtrain.shape
+    print("Train shape N,D: " , N,D)
+    #return
     batch_sz = 500
     n_batches = N // batch_sz
 
@@ -94,8 +106,8 @@ def main():
     b3_init = np.zeros(K)
 
     # define variables and expressions
-    X = tf.placeholder(tf.float32, shape=(None, D), name='X')
-    T = tf.placeholder(tf.int32, shape=(None,), name='T')
+    X = tf.compat.v1.placeholder(tf.float32, shape=(None, D), name='X')
+    T = tf.compat.v1.placeholder(tf.int32, shape=(None,), name='T')
     W1 = tf.Variable(W1_init.astype(np.float32))
     b1 = tf.Variable(b1_init.astype(np.float32))
     W2 = tf.Variable(W2_init.astype(np.float32))
@@ -114,28 +126,40 @@ def main():
         )
     )
 
-    train_op = tf.train.RMSPropOptimizer(0.0001, decay=0.99, momentum=0.9).minimize(cost)
+    train_op = tf.compat.v1.train.RMSPropOptimizer(0.0001, decay=0.99, momentum=0.9).minimize(cost)
+    #train_op = tf.compat.v1.train.RMSPropOptimizer(0.0002, decay=0.995, momentum=0.9).minimize(cost)
 
     # we'll use this to calculate the error rate
     predict_op = tf.argmax(logits, 1)
 
     t0 = datetime.now()
     LL = []
-    init = tf.global_variables_initializer()
-    with tf.Session() as session:
+    init = tf.compat.v1.global_variables_initializer()
+    with tf.compat.v1.Session() as session:
         session.run(init)
 
         for i in range(max_iter):
             for j in range(n_batches):
                 Xbatch = Xtrain[j*batch_sz:(j*batch_sz + batch_sz),]
                 Ybatch = Ytrain[j*batch_sz:(j*batch_sz + batch_sz),]
-
+                #print ("Xtest.shape:",Xtest.shape)
                 session.run(train_op, feed_dict={X: Xbatch, T: Ybatch})
                 if j % print_period == 0:
                     test_cost = session.run(cost, feed_dict={X: Xtest, T: Ytest})
                     prediction = session.run(predict_op, feed_dict={X: Xtest})
                     err = error_rate(prediction, Ytest)
                     print("Cost / err at iteration i=%d, j=%d: %.3f / %.3f" % (i, j, test_cost, err))
+                    #print( "prediction size:" , prediction.shape)
+                    #return
+                    ind=np.random.random_integers(0,26031 )
+                    print ("prediction at rand ind, pred, label: ",ind, (prediction[ind]+1)%10, (Ytest[ind]+1)%10)
+                    XtestImage= np.squeeze( Xtest[ind,:])
+                    XtestImage=XtestImage.reshape(32,32,3)
+                    plt.imshow( XtestImage)
+                    plt.show(block=False)
+                    plt.draw()
+                    plt.pause(0.5)
+                    plt.cla()
                     LL.append(test_cost)
     print("Elapsed time:", (datetime.now() - t0))
     plt.plot(LL)
