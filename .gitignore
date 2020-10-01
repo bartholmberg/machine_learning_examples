@@ -1,5 +1,7 @@
 *.DS_Store
 *.pyc
+checkpoint*
+foo*
 large_files
 large_files/*
 nlp_class2/chunking/*

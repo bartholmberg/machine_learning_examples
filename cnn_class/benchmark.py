@@ -63,6 +63,7 @@ def get_data():
 
 
 def main():
+    os.chdir('C:\\repo\\machine_learning_examples\\cnn_class')
     tf.compat.v1.disable_eager_execution()
     train, test = get_data()
 
@@ -75,9 +76,9 @@ def main():
     Xtrain = flatten(train['X'].astype(np.float32) / 255.)
     Ytrain = train['y'].flatten() - 1
     Xtrain, Ytrain = shuffle(Xtrain, Ytrain)
-
     Xtest  = flatten(test['X'].astype(np.float32) / 255.)
     Ytest  = test['y'].flatten() - 1
+    Xtest,Ytest=shuffle(Xtest,Ytest)
     #plt.plot(test['y'])
     plt.show()
 
@@ -86,7 +87,7 @@ def main():
         plt.imshow(np.squeeze( train['X'][:,:,:,i] ))
         plt.show(block=False)
     # gradient descent params
-    max_iter = 20
+    max_iter = 30
     print_period = 10
     N, D = Xtrain.shape
     print("Train shape N,D: " , N,D)
@@ -126,42 +127,59 @@ def main():
         )
     )
 
-    train_op = tf.compat.v1.train.RMSPropOptimizer(0.0001, decay=0.99, momentum=0.9).minimize(cost)
-    #train_op = tf.compat.v1.train.RMSPropOptimizer(0.0002, decay=0.995, momentum=0.9).minimize(cost)
+    train_op_small = tf.compat.v1.train.RMSPropOptimizer(0.00008, decay=0.99, momentum=0.9).minimize(cost)
+    train_op = tf.compat.v1.train.RMSPropOptimizer(0.0003, decay=0.995, momentum=0.9).minimize(cost)
 
     # we'll use this to calculate the error rate
     predict_op = tf.argmax(logits, 1)
-
+    err=1.0
     t0 = datetime.now()
     LL = []
     init = tf.compat.v1.global_variables_initializer()
+    saver=tf.compat.v1.train.Saver()
+  
+
     with tf.compat.v1.Session() as session:
         session.run(init)
-
+        if os.path.exists('./foo_model-100.meta'): 
+            saver=tf.compat.v1.train.import_meta_graph('foo_model-100.meta')
+            saver.restore(session, tf.train.latest_checkpoint('./'))
+            graph=tf.compat.v1.get_default_graph()
+            X = graph.get_tensor_by_name("X:0")
+            #W1 = tf.compat.v1.get_variable("W1:0")
+            #return
+            #W3 = graph.get_tensor_by_name("W3:0")
+            print('loaded pre-trained model')
         for i in range(max_iter):
             for j in range(n_batches):
                 Xbatch = Xtrain[j*batch_sz:(j*batch_sz + batch_sz),]
                 Ybatch = Ytrain[j*batch_sz:(j*batch_sz + batch_sz),]
                 #print ("Xtest.shape:",Xtest.shape)
-                session.run(train_op, feed_dict={X: Xbatch, T: Ybatch})
+                if ( abs(err) >0.4): 
+                    session.run(train_op, feed_dict={X: Xbatch, T: Ybatch})
+                else:
+                    session.run(train_op_small, feed_dict={X: Xbatch, T: Ybatch})
+                saver.save(session,'foo_model',global_step=100)
                 if j % print_period == 0:
                     test_cost = session.run(cost, feed_dict={X: Xtest, T: Ytest})
                     prediction = session.run(predict_op, feed_dict={X: Xtest})
                     err = error_rate(prediction, Ytest)
+
                     print("Cost / err at iteration i=%d, j=%d: %.3f / %.3f" % (i, j, test_cost, err))
                     #print( "prediction size:" , prediction.shape)
                     #return
-                    ind=np.random.random_integers(0,26031 )
-                    print ("prediction at rand ind, pred, label: ",ind, (prediction[ind]+1)%10, (Ytest[ind]+1)%10)
-                    XtestImage= np.squeeze( Xtest[ind,:])
-                    XtestImage=XtestImage.reshape(32,32,3)
-                    plt.imshow( XtestImage)
-                    plt.show(block=False)
-                    plt.draw()
-                    plt.pause(0.5)
-                    plt.cla()
+                    for k in range(8):
+                        ind=np.random.random_integers(0,26031 )
+                        print ("prediction at rand ind, pred, label: ",ind, (prediction[ind]+1)%10, (Ytest[ind]+1)%10)
+                        XtestImage=np.squeeze( Xtest[ind,:]).reshape(32,32,3)
+                        plt.imshow( XtestImage)
+                        plt.show(block=False)
+                        plt.draw()
+                        plt.pause(1.5)
+                        plt.cla()
                     LL.append(test_cost)
     print("Elapsed time:", (datetime.now() - t0))
+    tf.session.s
     plt.plot(LL)
     plt.show()
 
