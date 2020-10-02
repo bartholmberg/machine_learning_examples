@@ -79,12 +79,12 @@ def main():
     Xtest  = flatten(test['X'].astype(np.float32) / 255.)
     Ytest  = test['y'].flatten() - 1
     Xtest,Ytest=shuffle(Xtest,Ytest)
-    plt.show()
-
     print( train['y'][0:10])
     for i in range(0,11):
         plt.imshow(np.squeeze( train['X'][:,:,:,i] ))
+        plt.draw()
         plt.show(block=False)
+        plt.cla()
     # gradient descent params
     max_iter = 30
     print_period = 10
