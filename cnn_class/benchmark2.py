@@ -16,7 +16,9 @@ import matplotlib.pyplot as plt
 from scipy.io import loadmat
 from sklearn.utils import shuffle
 from datetime import datetime
-
+from tensorflow import keras
+from tensorflow.keras import layers
+#from tensorflow._api.v1.keras import layers
 
 def error_rate(p, t):
     return np.mean(p != t)
@@ -59,6 +61,11 @@ def get_data():
     train = loadmat('../large_files/train_32x32.mat')
     test  = loadmat('../large_files/test_32x32.mat')
     print('loaded data')
+    (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
+
+    # Preprocess the data (these are NumPy arrays)
+    x_train = x_train.reshape(60000, 784).astype("float32") / 255
+    x_test = x_test.reshape(10000, 784).astype("float32") / 255
     return train, test
 
 
@@ -127,7 +134,8 @@ def main():
     )
 
     train_op_small = tf.compat.v1.train.RMSPropOptimizer(0.00008, decay=0.99, momentum=0.9).minimize(cost)
-    train_op = tf.compat.v1.train.RMSPropOptimizer(0.0003, decay=0.995, momentum=0.9).minimize(cost)
+    train_op = tf.compat.v1.train.RMSPropOptimizer(0.0003, decay=0.99, momentum=0.9).minimize(cost)
+    #train_op=tf.keras.optimizers.RMSprop(0.0001, rho=0.99, momentum=0.9).minimize(cost)
 
     # we'll use this to calculate the error rate
     predict_op = tf.argmax(logits, 1)
@@ -156,7 +164,7 @@ def main():
                 #print ("Xtest.shape:",Xtest.shape)
                 if ( abs(err) >0.4): 
                     session.run(train_op, feed_dict={X: Xbatch, T: Ybatch})
-                    print("Using large learninge coef")
+                    print("Using large learning coef")
                 else:
                     session.run(train_op_small, feed_dict={X: Xbatch, T: Ybatch})
                 saver.save(session,'foo_model',global_step=100)

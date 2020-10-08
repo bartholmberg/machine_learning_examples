@@ -128,7 +128,7 @@ def main():
 
     train_op_small = tf.compat.v1.train.RMSPropOptimizer(0.00008, decay=0.99, momentum=0.9).minimize(cost)
     train_op = tf.compat.v1.train.RMSPropOptimizer(0.0003, decay=0.995, momentum=0.9).minimize(cost)
-
+    #train_op=tf.keras.optimizers.RMSprop(0.0003, rho=0.995, momentum=0.9).minimize(cost)
     # we'll use this to calculate the error rate
     predict_op = tf.argmax(logits, 1)
     err=1.0
