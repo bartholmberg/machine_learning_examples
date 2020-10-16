@@ -1,8 +1,13 @@
 *.DS_Store
 *.pyc
+*.csv
+*.pyproj
+*.sln
 checkpoint*
 foo*
 bench3*
+*.suo
+*.jpg
 large_files
 large_files/*
 nlp_class2/chunking/*
