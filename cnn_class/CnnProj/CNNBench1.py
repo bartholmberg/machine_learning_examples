@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+#test git access
 from tensorflow.python.keras.applications import ResNet50
 def GetData(fns=['38.jpg',"2640.jpg"]):
 
