@@ -8,12 +8,12 @@ import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 from pathlib import *
 import glob
-
+import shutil
 #test git access
 from tensorflow.python.keras.applications import ResNet50
 
-def plotpic(fns,   train_dir = 'D:\\'+ 'train_9\\'):
-    for i in range( 10,len(fns)):
+def plotPic(fns,   train_dir = 'D:\\'+ 'train_9\\'):
+    for i in range( len(fns)):
         filename=fns[i]
         img = cv2.imread(train_dir + filename)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -21,9 +21,16 @@ def plotpic(fns,   train_dir = 'D:\\'+ 'train_9\\'):
         plt.show(block=True)
         plt.draw()
     return
+def moveData(fromList, fromDir,toDir):
+    for i in range(len(fromList)):
+        fromFile= fromList[i]
+        #fn=os.path.basename(fromFile)
+        #os.rename(fromDir+fromFile, toDir+fromFile)
+        shutil.move(fromDir+fromFile,toDir+fromFile)
+    return  
 def extract(lst): 
     return [item[0] for item in lst] 
-def GetData( df, train_dir = 'D:\\'+ 'train_9\\'):
+def getData( df, train_dir = 'D:\\'+ 'train_9\\'):
     print("there are " + str(df.shape[0]) + " paintings inside train") 
     # get a dataframe that has rows referring to files starting with 2
     # because we only have those files downloaded currently
@@ -65,9 +72,11 @@ model.add(layers.Dense(1, activation='sigmoid'))
 model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
 a=model.summary()
 print(a)
-data_dir='u:\\train_3\\'
+data_dir=['d:\\train_9\\', 'd:\\train_8\\','d:\\train_7\\','d:\\train_6\\','u:\\train_1\\','u:\\train_2\\','u:\\train_3\\','u:\\train_4\\',  'u:\\train_5\\']
+picasso_dir = 'd:\\picasso\\'
 allTrainInfo = pd.read_csv('u:\\train_info.csv')
-b=GetData(allTrainInfo,data_dir)
-
-plotpic(b,data_dir)
+for i in range( len(data_dir)):
+    b=getData(allTrainInfo,data_dir[i])
+    moveData(b, data_dir[i], picasso_dir);
+plotPic(b, data_dir[4])
 print(b)
