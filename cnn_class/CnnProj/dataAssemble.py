@@ -12,6 +12,18 @@ import shutil
 #test git access
 from tensorflow.python.keras.applications import ResNet50
 
+def plotPic2(image_dir = 'D:\\train_9\\',model):
+    #files =[os.path.basename(x) for x in glob.glob(image_dir+ '**/*', recursive=True)]
+    fns=glob.glob(image_dir+ '**/*', recursive=True)]
+    for i in range( len(fns)):
+        filename=fns[i]
+        img = cv2.imread(filename)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        plt.imshow(img)
+        plt.show(block=True)
+        plt.draw()
+    return
+
 def plotPic(fns,   train_dir = 'D:\\'+ 'train_9\\'):
     for i in range( len(fns)):
         filename=fns[i]

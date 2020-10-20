@@ -30,11 +30,10 @@ model.add(layers.Dense(1, activation='sigmoid'))
 model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
 a=model.summary()
 print(a)
-data_dir=['d:\\train_9\\', 'd:\\train_8\\','d:\\train_7\\','d:\\train_6\\','u:\\train_1\\','u:\\train_2\\','u:\\train_3\\','u:\\train_4\\',  'u:\\train_5\\']
-picasso_dir = 'd:\\picasso\\'
+
+picasso_dir = 'u:\\picasso\\'
+data_dir=[picasso_dir,'d:\\train_9\\', 'd:\\train_8\\','d:\\train_7\\','d:\\train_6\\','u:\\train_1\\','u:\\train_2\\','u:\\train_3\\','u:\\train_4\\',  'u:\\train_5\\']
 allTrainInfo = pd.read_csv('u:\\train_info.csv')
-for i in range( len(data_dir)):
-    b=ad.getData(allTrainInfo,data_dir[i])
-    ad.moveData(b, data_dir[i], picasso_dir);
-ad.plotPic(b, data_dir[4])
+b=ad.getData(allTrainInfo,data_dir[0])
+ad.plotPic(b, data_dir[0])
 print(b)
