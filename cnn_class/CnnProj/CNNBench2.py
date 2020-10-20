@@ -2,7 +2,33 @@ from tensorflow.python.keras.applications import ResNet50
 from tensorflow.python.keras.models import Sequential
 from tensorflow.python.keras.layers import Dense, Flatten, GlobalAveragePooling2D
 import os 
-import dataAssemble as ad
+import cv2
+import matplotlib.pyplot as plt
+
+
+import tensorflow as tf
+from tensorflow import keras
+from pathlib import *
+import glob
+import shutil
+import matplotlib.pyplot as plt
+import numpy as np # linear algebra
+import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+
+def plotPic2(model,image_dir = 'D:\\train_9\\'):
+    #files =[os.path.basename(x) for x in glob.glob(image_dir+ '**/*', recursive=True)]
+    fns=glob.glob(image_dir+ '**/*', recursive=True)
+    for i in range( len(fns)):
+        filename=fns[i]
+        img = cv2.imread(filename)
+        b =cv2.resize(img,(224,224))
+         
+        yhat = model.predict(b.reshape (1, 224, 224, 3))
+        img = cv2.cvtColor(b, cv2.COLOR_BGR2RGB)
+        plt.imshow(b)
+        plt.show(block=True)
+        plt.draw()
+    return
 num_classes = 2 # picasso or not picasso
 
 # this file is the resnet50 model trained on ImageNet data...
@@ -80,5 +106,5 @@ if True is False:
       validation_data=validation_generator,
       validation_steps=2)
 model.summary()
-ad.plotPic2(working_test_dir+'picasso')
-yhat = model.predict(x_test[ind,:].reshape(1,784))
+plotPic2(model,working_test_dir+'\\picasso')
+#yhat = model.predict(x_test[ind,:].reshape(1,784))
