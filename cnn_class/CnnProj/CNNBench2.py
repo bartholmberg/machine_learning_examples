@@ -106,5 +106,5 @@ if True is False:
       validation_data=validation_generator,
       validation_steps=2)
 model.summary()
-plotPic2(model,working_test_dir+'\\picasso')
+plotPic2(model,working_test_dir+'\\not-picasso')
 #yhat = model.predict(x_test[ind,:].reshape(1,784))
