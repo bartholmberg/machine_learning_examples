@@ -14,21 +14,8 @@ import shutil
 import matplotlib.pyplot as plt
 import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+import dataAssemble as da
 
-def plotPic2(model,image_dir = 'D:\\train_9\\'):
-    #files =[os.path.basename(x) for x in glob.glob(image_dir+ '**/*', recursive=True)]
-    fns=glob.glob(image_dir+ '**/*', recursive=True)
-    for i in range( len(fns)):
-        filename=fns[i]
-        img = cv2.imread(filename)
-        b =cv2.resize(img,(224,224))
-         
-        yhat = model.predict(b.reshape (1, 224, 224, 3))
-        img = cv2.cvtColor(b, cv2.COLOR_BGR2RGB)
-        plt.imshow(b)
-        plt.show(block=True)
-        plt.draw()
-    return
 num_classes = 2 # picasso or not picasso
 
 # this file is the resnet50 model trained on ImageNet data...
@@ -37,8 +24,8 @@ num_classes = 2 # picasso or not picasso
 weights_notop_path = 'u:\\resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
 
 # declare new Sequential model
-# meaning each layer is in sequence, one after the other. 
-# apparently there can be non-sequential neural networks... wow!
+ 
+
 model = Sequential()
 
 # now let's set up the first layers
@@ -51,8 +38,8 @@ model.add(ResNet50(    # add a whole ResNet50 model
 
 # Now lets add a "Dense" layer to make predictions
 model.add(Dense(
-  num_classes, # this last layer just has 2 nodes
-  activation='softmax' # apply softmax function to turn values of this layer into probabilities
+  1, # this last layer just has 2 nodes
+  activation='sigmoid' # apply softmax function to turn values of this layer into probabilities
 ))
 
 # do not train the first layer
@@ -61,50 +48,43 @@ model.add(Dense(
 model.layers[0].trainable = False
 model.compile(
   optimizer='sgd', # stochastic gradient descent (how to update Dense connections during training)
-  loss='categorical_crossentropy', # aka "log loss" -- the cost function to minimize 
+  #loss='categorical_crossentropy', # aka "log loss" -- the cost function to minimize 
+  loss='mean_squared_error',
   # so 'optimizer' algorithm will minimize 'loss' function
   metrics=['accuracy'] # ask it to report % of correct predictions
 )
 from tensorflow.python.keras.applications.resnet50 import preprocess_input
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 image_size = 224
-data_generator_no_aug = ImageDataGenerator(preprocessing_function=preprocess_input)
-working_train_dir='D:\workTrain'
-working_test_dir='D:\workTest'
-if (False is True):
-    train_generator_no_aug = data_generator_no_aug.flow_from_directory(
-        working_train_dir,
+data_generator_no_aug = ImageDataGenerator(preprocessing_function=preprocess_input, rescale=1.0)
+working_train_dir='D:\\workTrain'
+working_test_dir='D:\\workTest'
+if (True):
+    train_generator_no_aug = data_generator_no_aug.flow_from_directory(working_train_dir,
         target_size=(image_size, image_size),
         batch_size=24,
-        class_mode='categorical')
+        class_mode='binary')
 
-    validation_generator = data_generator_no_aug.flow_from_directory(
-        working_test_dir,
-        target_size=(image_size, image_size),
-        class_mode='categorical')
-else:
-    data_generator_with_aug = ImageDataGenerator(preprocessing_function=preprocess_input,
-                                   horizontal_flip=True,
-                                   width_shift_range = 0.2,
-                                   height_shift_range = 0.2)
-
-    train_generator_with_aug = data_generator_with_aug.flow_from_directory(
-        working_train_dir,
+    validation_generator = data_generator_no_aug.flow_from_directory(working_test_dir,
         target_size=(image_size, image_size),
         batch_size=24,
-        class_mode='categorical')
-    validation_generator = data_generator_with_aug.flow_from_directory(
-        working_test_dir,
-        target_size=(image_size, image_size),
-        class_mode='categorical')
-print("\n\nmodel - train_generator_no_aug")
-model.load_weights("wpicasso.h5") 
-if True is False:
+        class_mode='binary')
+
+print("\n\nmodel - train_generator")
+isRefreshWeights=False
+if not isRefreshWeights:
+    model.load_weights("wpicasso.h5") 
+
+
+if isRefreshWeights:
     history = model.fit_generator(
-      train_generator_with_aug,
-      steps_per_epoch=8,
+      train_generator_no_aug,
+      steps_per_epoch=10,
+      epochs=3,
       validation_data=validation_generator,
-      validation_steps=2)
+      validation_steps=3)
+    model.save_weights("wpicasso.h5")
 model.summary()
-plotPic2(model,working_test_dir+'\\not-picasso')
+
+da.plotPic2(model,'d:\\workTest\\picasso')
 #yhat = model.predict(x_test[ind,:].reshape(1,784))

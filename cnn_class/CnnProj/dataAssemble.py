@@ -11,7 +11,32 @@ import glob
 import shutil
 #test git access
 from tensorflow.python.keras.applications import ResNet50
+from tensorflow.python.keras.applications.resnet50 import preprocess_input
+from tensorflow.keras.preprocessing import image
+def plotPic2(model,image_dir):
+    #files =[os.path.basename(x) for x in glob.glob(image_dir+ '**/*', recursive=True)]
+    fns=glob.glob(image_dir+ '**/*', recursive=True)
+    for i in range( len(fns)):
+        filename=fns[i]
 
+
+        img = image.load_img(filename, target_size=(224, 224))
+        x = image.img_to_array(img)
+        #x = image.img_to_tensor(img)
+        x = np.expand_dims(x, axis=0)
+        x = preprocess_input(x )
+
+
+        #img = cv2.imread(filename)
+        #b = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        #b =cv2.resize(b,(224,224))
+         
+        yhat = model.predict(x)
+        img = image.array_to_img(np.squeeze(x))
+        plt.imshow(img)
+        plt.show(block=True)
+        plt.draw()
+    return
 
 def plotPic(fns,   train_dir = 'D:\\'+ 'train_9\\'):
     for i in range( len(fns)):
