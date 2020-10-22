@@ -1,6 +1,7 @@
 from tensorflow.python.keras.applications import ResNet50
 from tensorflow.python.keras.models import Sequential
 from tensorflow.python.keras.layers import Dense, Flatten, GlobalAveragePooling2D
+
 import os 
 import cv2
 import matplotlib.pyplot as plt
@@ -15,6 +16,7 @@ import matplotlib.pyplot as plt
 import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 import dataAssemble as da
+import matplotlib.pyplot as plt
 
 num_classes = 2 # picasso or not picasso
 
@@ -55,25 +57,41 @@ model.compile(
 )
 from tensorflow.python.keras.applications.resnet50 import preprocess_input
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.python.keras.preprocessing.image import image
 image_size = 224
 data_generator_no_aug = ImageDataGenerator(preprocessing_function=preprocess_input, rescale=1.0)
 working_train_dir='D:\\workTrain'
 working_test_dir='D:\\workTest'
-if (True):
+isRefreshWeights=True
+if (isRefreshWeights):
     train_generator_no_aug = data_generator_no_aug.flow_from_directory(working_train_dir,
         target_size=(image_size, image_size),
-        batch_size=24,
+        batch_size=50,
         class_mode='binary')
 
     validation_generator = data_generator_no_aug.flow_from_directory(working_test_dir,
         target_size=(image_size, image_size),
-        batch_size=24,
+        batch_size=50,
         class_mode='binary')
+    
+model.load_weights("wpicasso.h5")  
+if not isRefreshWeights:
+    model.load_weights("wpicasso.h5")    
+if not isRefreshWeights:
+    idg =data_generator_no_aug.flow_from_directory(directory=working_train_dir,target_size=(image_size, image_size),batch_size=1,class_mode='binary')
+    for imgs in idg:
+      yhat=model.predict(imgs)
+      #img = image.array_to_img(a)
+      a=np.squeeze(imgs[0])
+      xxx = image.img_to_array(a)
+      label =( np.asscalar(imgs[1]) > 0.3)
+      if label is True:
+        plt.imshow(xxx)
+        plt.show(block=True)
+        plt.draw()
 
 print("\n\nmodel - train_generator")
-isRefreshWeights=False
-if not isRefreshWeights:
-    model.load_weights("wpicasso.h5") 
+
 
 
 if isRefreshWeights:
@@ -81,10 +99,11 @@ if isRefreshWeights:
       train_generator_no_aug,
       steps_per_epoch=10,
       epochs=3,
+      class_weight={0:85,1:15},
       validation_data=validation_generator,
       validation_steps=3)
     model.save_weights("wpicasso.h5")
 model.summary()
 
-da.plotPic2(model,'d:\\workTest\\picasso')
+da.plotPic2(model,'d:\\workTrain\\picasso')
 #yhat = model.predict(x_test[ind,:].reshape(1,784))

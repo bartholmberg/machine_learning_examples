@@ -21,18 +21,18 @@ def plotPic2(model,image_dir):
 
 
         img = image.load_img(filename, target_size=(224, 224))
-        x = image.img_to_array(img)
+        xxx = image.img_to_array(img)
         #x = image.img_to_tensor(img)
-        x = np.expand_dims(x, axis=0)
-        x = preprocess_input(x )
+        xxx = np.expand_dims(xxx, axis=0)
+        xxx = preprocess_input(xxx )
 
 
         #img = cv2.imread(filename)
         #b = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         #b =cv2.resize(b,(224,224))
          
-        yhat = model.predict(x)
-        img = image.array_to_img(np.squeeze(x))
+        yhat = model.predict(xxx)
+        img = image.array_to_img(np.squeeze(xxx))
         plt.imshow(img)
         plt.show(block=True)
         plt.draw()
