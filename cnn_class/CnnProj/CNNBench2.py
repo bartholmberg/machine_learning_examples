@@ -40,8 +40,8 @@ model.add(ResNet50(    # add a whole ResNet50 model
 
 # Now lets add a "Dense" layer to make predictions
 model.add(Dense(
-  1, # this last layer just has 2 nodes
-  activation='sigmoid' # apply softmax function to turn values of this layer into probabilities
+  2, # this last layer just has 2 nodes
+  activation='softmax' # apply softmax function to turn values of this layer into probabilities
 ))
 
 # do not train the first layer
@@ -50,8 +50,8 @@ model.add(Dense(
 model.layers[0].trainable = False
 model.compile(
   optimizer='sgd', # stochastic gradient descent (how to update Dense connections during training)
-  #loss='categorical_crossentropy', # aka "log loss" -- the cost function to minimize 
-  loss='mean_squared_error',
+  loss='categorical_crossentropy', # aka "log loss" -- the cost function to minimize 
+  #loss='mean_squared_error',
   # so 'optimizer' algorithm will minimize 'loss' function
   metrics=['accuracy'] # ask it to report % of correct predictions
 )
@@ -67,28 +67,41 @@ if (isRefreshWeights):
     train_generator_no_aug = data_generator_no_aug.flow_from_directory(working_train_dir,
         target_size=(image_size, image_size),
         batch_size=50,
-        class_mode='binary')
+        class_mode='categorical')
 
     validation_generator = data_generator_no_aug.flow_from_directory(working_test_dir,
         target_size=(image_size, image_size),
         batch_size=50,
-        class_mode='binary')
+        class_mode='categorical')
     
 model.load_weights("wpicasso.h5")  
 if not isRefreshWeights:
     model.load_weights("wpicasso.h5")    
 if not isRefreshWeights:
-    idg =data_generator_no_aug.flow_from_directory(directory=working_train_dir,target_size=(image_size, image_size),batch_size=1,class_mode='binary')
+    idg =data_generator_no_aug.flow_from_directory(directory=working_train_dir,target_size=(image_size, image_size),batch_size=50,class_mode='categorical')
     for imgs in idg:
-      yhat=model.predict(imgs)
+      yhat=np.squeeze(model.predict(imgs))
+      yhat = np.rint(yhat).astype(int)
+      labels =np.array(imgs[1][:].astype(int))
       #img = image.array_to_img(a)
       a=np.squeeze(imgs[0])
-      xxx = image.img_to_array(a)
-      label =( np.asscalar(imgs[1]) > 0.3)
-      if label is True:
-        plt.imshow(xxx)
-        plt.show(block=True)
-        plt.draw()
+      for i in range(0,49 ):
+          if (labels[i][0] != yhat[i][0]) :
+            b=np.squeeze(a[i,:,:])
+            #xxx = image.array_to_img(a)
+            #xxx = image.img_to_array(a)
+ 
+            isPicasso=(labels[i][0]==0)
+            if isPicasso:
+                b = cv2.putText(b, 'Picasso',  (50, 50) , cv2.FONT_HERSHEY_SIMPLEX,  1, (30, 0, 0) , 4, cv2.LINE_AA) 
+            else:
+                b = cv2.putText(b, 'Not Picasso',  (50, 50) , cv2.FONT_HERSHEY_SIMPLEX,  1, (0, 0, 30) , 4, cv2.LINE_AA) 
+            plt.imshow(b)
+            plt.show(block=True)
+            plt.draw()  
+
+
+
 
 print("\n\nmodel - train_generator")
 
