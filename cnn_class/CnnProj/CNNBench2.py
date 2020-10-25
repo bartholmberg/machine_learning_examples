@@ -58,14 +58,14 @@ from tensorflow.python.keras.applications.resnet50 import preprocess_input
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.python.keras.preprocessing.image import image
 image_size = 224
-data_generator_aug = ImageDataGenerator(preprocessing_function=preprocess_input, rescale=1.0,  horizontal_flip=True,vertical_flip=True,rotation_range=180,
-                                   width_shift_range = 0.2,
-                                   height_shift_range = 0.2)
+data_generator_aug = ImageDataGenerator(preprocessing_function=preprocess_input, rescale=1.0,  horizontal_flip=True,vertical_flip=False,rotation_range=3,
+                                   width_shift_range = 0.1,
+                                   height_shift_range = 0.05)
 data_generator_no_aug = ImageDataGenerator(preprocessing_function=preprocess_input)
 
 working_train_dir='D:\\workTrain'
 working_test_dir='D:\\workTest'
-isRefreshWeights=True
+isRefreshWeights=False
 if (isRefreshWeights):
     train_generator_aug = data_generator_aug.flow_from_directory(working_train_dir,
         target_size=(image_size, image_size),
@@ -80,24 +80,26 @@ if (isRefreshWeights):
         batch_size=50,
         class_mode='categorical')
     
-model.load_weights("wpicasso.h5")  
+#model.load_weights("wpicasso.h5")  
 misses=0
 falarm=0
 correct=0
 if not isRefreshWeights:
     model.load_weights("wpicasso.h5")    
 if not isRefreshWeights:
-    idg =data_generator_no_aug.flow_from_directory(directory=working_test_dir,
+    idg =data_generator_no_aug.flow_from_directory(directory=working_train_dir,
        target_size=(image_size, image_size),batch_size=50,class_mode='categorical')
     for imgs in idg:
       print('false alarm: ',falarm,'misses: ',misses,'correct: ',correct)
       yhat=np.squeeze(model.predict(imgs))
+      yhatf = yhat;
       yhat = np.rint(yhat).astype(int)
       labels =np.array(imgs[1][:].astype(int))
       #img = image.array_to_img(a)
       a=np.squeeze(imgs[0])
       for i in range(0,50):
           if ( labels[i][0] != yhat[i][0] ) :
+            print('yhat:',yhatf[i][:],'labels:',labels[i][:],'error:' ,yhatf[i][:]-labels[i][:])
             b=np.squeeze(a[i,:,:])
             isPicasso=(labels[i][0]==0)
             if isPicasso:
@@ -115,9 +117,9 @@ print("\n\nmodel - train_generator")
 if isRefreshWeights:
     history = model.fit_generator(
       train_generator_aug,
-      steps_per_epoch=10,
-      epochs=10,
-      #class_weight={0:85,1:15},
+      steps_per_epoch=20,
+      epochs=30,
+      class_weight={0:3,1:1},
       validation_data=validation_generator_aug,
       validation_steps=3)
     model.save_weights("wpicasso.h5")
