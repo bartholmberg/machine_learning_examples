@@ -96,11 +96,12 @@ if (isRefreshWeights):
 misses = 0
 falarm = 0
 correct = 0
-isStartFreshWeights = False
-if isRefreshWeights and not isStartFreshWeights:
+isStartFreshWeights = False # start from random, otherwise start from prev
+
+
+if  not isStartFreshWeights:
     model.load_weights("wpicasso.h5")
 if not isRefreshWeights:
-    model.load_weights("wpicasso.h5")
     idg = data_generator_no_aug.flow_from_directory(directory=working_test_dir,
        target_size=(image_size, image_size),batch_size=50,class_mode='categorical')
     for imgs in idg:
@@ -108,7 +109,7 @@ if not isRefreshWeights:
       yhat = np.squeeze(model.predict(imgs))
       yhatf = yhat
       thresh = yhat[:,1]
-      yhat[thresh < 0.75] = [1,0]
+      yhat[thresh < 0.6] = [1,0]
       #yhat = yhat[yhat[:,1]<0.9]=0
       yhat = np.rint(yhat).astype(int)
       labels = np.array(imgs[1][:].astype(int))
