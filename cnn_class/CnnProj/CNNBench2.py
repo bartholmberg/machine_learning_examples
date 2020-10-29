@@ -109,7 +109,7 @@ if not isRefreshWeights:
       yhat = np.squeeze(model.predict(imgs))
       yhatf = yhat
       thresh = yhat[:,1]
-      yhat[thresh < 0.6] = [1,0]
+      yhat[thresh < 0.85] = [1,0]
       #yhat = yhat[yhat[:,1]<0.9]=0
       yhat = np.rint(yhat).astype(int)
       labels = np.array(imgs[1][:].astype(int))
@@ -126,7 +126,7 @@ if not isRefreshWeights:
             else:
                 b = cv2.putText(b, 'Not Picasso',  (30, 30) , cv2.FONT_ITALIC,  1, (0, 0, 10) , 2, cv2.LINE_AA) 
                 falarm = falarm + 1
-            plt.imshow(b + 20)
+            plt.imshow( b.astype('uint8')-255 )
             plt.show(block=True)
             plt.draw()
           else:
