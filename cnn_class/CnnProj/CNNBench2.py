@@ -105,6 +105,8 @@ if not isRefreshWeights:
     idg = data_generator_no_aug.flow_from_directory(directory=working_test_dir,
        target_size=(image_size, image_size),batch_size=50,class_mode='categorical')
     for imgs in idg:
+      idx = (idg.batch_index - 1) * idg.batch_size
+      fn=idg.filenames[idx : idx + idg.batch_size]
       print('false alarm: ',falarm,'misses: ',misses,'correct: ',correct)
       yhat = np.squeeze(model.predict(imgs))
       yhatf = yhat
@@ -117,7 +119,7 @@ if not isRefreshWeights:
       a = np.squeeze(imgs[0])
       for i in range(0, len(yhat)):
           if (labels[i][0] != yhat[i][0]) :
-            print('yhat:',yhatf[i][:],'labels:',labels[i][:],'error:' ,yhatf[i][:] - labels[i][:])
+            print('yhat:',yhatf[i][:],'labels:',labels[i][:],'error:' ,yhatf[i][:] - labels[i][:],'filename:',fn[i])
             b = np.squeeze(a[i,:,:])
             isPicasso = (labels[i][0] == 0)
             if isPicasso:
@@ -127,7 +129,8 @@ if not isRefreshWeights:
                 b = cv2.putText(b, 'Not Picasso',  (30, 30) , cv2.FONT_ITALIC,  1, (0, 0, 10) , 2, cv2.LINE_AA) 
                 falarm = falarm + 1
             plt.imshow( b.astype('uint8')-255 )
-            plt.show(block=True)
+            plt.show(block=False)
+            plt.pause(0.5)
             plt.draw()
           else:
             correct = correct + 1
