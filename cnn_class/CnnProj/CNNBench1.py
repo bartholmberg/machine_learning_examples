@@ -13,27 +13,29 @@ import shutil
 from tensorflow.python.keras.applications import ResNet50
 import dataAssemble as ad
 
-my_seed = 42 # 480 could work too
-np.random.seed(my_seed)
-tf.set_random_seed(my_seed)
-model = keras.Sequential()
-model.add(layers.Conv2D(filters=32, activation='relu', kernel_size=3, strides=(3, 3), input_shape=(200, 200, 3)))
-model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-model.add(layers.Conv2D(filters=32, activation='relu',kernel_size=3, strides=(3, 3)))
-model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-model.add(layers.Conv2D(filters=64, activation='relu', kernel_size=3, strides=(3, 3)))
-model.add(layers.MaxPooling2D(pool_size=(1, 1)))
-model.add(layers.Flatten())  
-model.add(layers.Dense(64, activation='relu'))
-model.add(layers.Dropout(0.5))
-model.add(layers.Dense(1, activation='sigmoid'))
-model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
-a=model.summary()
-print(a)
+fixedSeed = 42 # 480 could work too
+np.random.seed(fixedSeed)
+tf.set_random_seed(fixedSeed)
+
 
 picasso_dir = 'u:\\picasso\\'
-data_dir=[picasso_dir,'d:\\train_9\\', 'd:\\train_8\\','d:\\train_7\\','d:\\train_6\\','u:\\train_1\\','u:\\train_2\\','u:\\train_3\\','u:\\train_4\\',  'u:\\train_5\\']
-allTrainInfo = pd.read_csv('u:\\train_info.csv')
+#data_dir=[picasso_dir,'d:\\train_9\\', 'd:\\train_8\\','d:\\train_7\\','d:\\train_6\\','u:\\train_1\\','u:\\train_2\\','u:\\train_3\\','u:\\train_4\\',  'u:\\train_5\\']
+data_dir = 'u:\\train\\'
+allTrainInfo = pd.read_csv('u:\\all_data_info.csv')
 b=ad.getData(allTrainInfo,data_dir[0])
 ad.plotPic(b, data_dir[0])
 print(b)
+# model = keras.Sequential()
+#model.add(layers.Conv2D(filters=32, activation='relu', kernel_size=3, strides=(3, 3), input_shape=(200, 200, 3)))
+#model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+#model.add(layers.Conv2D(filters=32, activation='relu',kernel_size=3, strides=(3, 3)))
+#model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+#model.add(layers.Conv2D(filters=64, activation='relu', kernel_size=3, strides=(3, 3)))
+#model.add(layers.MaxPooling2D(pool_size=(1, 1)))
+#model.add(layers.Flatten())  
+#model.add(layers.Dense(64, activation='relu'))
+#model.add(layers.Dropout(0.5))
+#model.add(layers.Dense(1, activation='sigmoid'))
+#model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+#a=model.summary()
+#print(a)

@@ -55,7 +55,7 @@ def moveData(fromList, fromDir,toDir):
         shutil.move(fromDir+fromFile,toDir+fromFile)
     return  
 def extract(lst): 
-    return [item[0] for item in lst] 
+    return [item[11] for item in lst] 
 def getData( df, train_dir = 'D:\\'+ 'train_9\\'):
     print("there are " + str(df.shape[0]) + " paintings inside train") 
     # get a dataframe that has rows referring to files starting with 2
@@ -69,7 +69,8 @@ def getData( df, train_dir = 'D:\\'+ 'train_9\\'):
     #files = (x for x in mpath if x.is_file())
     # string of just the artist's hash code
     #aaa = train_2_df[(train_2_df['filename'] == filename)].artist.to_numpy();
-    img_artist='1950e9aa6ad878bc2a330880f77ae5a1'
+    #img_artist='1950e9aa6ad878bc2a330880f77ae5a1'
+    img_artist='Pablo Picasso'
     #img_artist = train_df[(train_df['filename'] == filename)].artist.array[0]
     
     artist_data = df[(df['artist'] == img_artist)]
@@ -77,7 +78,8 @@ def getData( df, train_dir = 'D:\\'+ 'train_9\\'):
 
     num_artist = len(artist_data)
     print("Picasso has " + str(num_artist) + " paintings inside train")
-    allArtists=extract(artist_data.values.tolist())
+    artistList=artist_data.values.tolist()
+    allArtists=extract(artistList)
     c=list(set(allArtists) & set(files))
     return c
 
