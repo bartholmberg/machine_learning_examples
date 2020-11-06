@@ -77,10 +77,11 @@ def getData( df, train_dir = 'D:\\'+ 'train_9\\'):
     not_artist_data = df[(df['artist'] != img_artist)]
 
     num_artist = len(artist_data)
-    print("Picasso has " + str(num_artist) + " paintings inside train")
+
     artistList=artist_data.values.tolist()
     allArtists=extract(artistList)
     c=list(set(allArtists) & set(files))
+    print("Picasso has " + str(len(c)) + " paintings inside train")
     return c
 
 

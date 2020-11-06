@@ -19,6 +19,9 @@ import dataAssemble as da
 import matplotlib.pyplot as plt
 import sys, getopt
 import argparse
+from PIL import ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+ImageFile.MAX_IMAGE_PIXELS=int(4024 * 4024 * 4024 / 4 / 3)
 argparser = argparse.ArgumentParser(
     description='test picasso judge')
 
@@ -49,7 +52,9 @@ model.add(ResNet50(# add a whole ResNet50 model
                 # channels
 ))
 
-
+model.add(Dense(1024, # 
+  activation='relu'
+))
 # Now lets add a "Dense" layer to make predictions
 model.add(Dense(2, # this last layer just has 2 nodes
   activation='softmax' # apply softmax function to turn values of this layer into probabilities
@@ -59,8 +64,9 @@ model.add(Dense(2, # this last layer just has 2 nodes
 # because it is already smart
 # it learned cool patterns from ImageNet
 model.layers[0].trainable = False
-model.compile(optimizer='sgd', # stochastic gradient descent (how to update Dense connections during
+#model.compile(optimizer='sgd', # stochastic gradient descent (how to update Dense connections during
                                # training)
+model.compile(  optimizer=keras.optimizers.Adam(learning_rate=0.01, beta_1=0.9, beta_2=0.999, epsilon=1e-07, amsgrad=False),
   loss='categorical_crossentropy', # aka "log loss" -- the cost function to minimize
   #loss='mean_squared_error',
   # so 'optimizer' algorithm will minimize 'loss' function
@@ -73,37 +79,38 @@ image_size = 224
 data_generator_aug = ImageDataGenerator(preprocessing_function=preprocess_input, rescale=1.0,  horizontal_flip=True,vertical_flip=False,rotation_range=3,
                                    width_shift_range = 0.1,
                                    height_shift_range = 0.05)
-data_generator_no_aug = ImageDataGenerator(preprocessing_function=preprocess_input)
-
-working_train_dir = 'D:\\workTrain'
-working_test_dir = 'D:\\workTest'
 isRefreshWeights = False
+isStartFreshWeights = False # start from random, otherwise start from prev
+data_generator_no_aug = ImageDataGenerator(preprocessing_function=preprocess_input,rescale=1.0)
+
+working_train_dir = 'u:\\workTrain'
+working_test_dir = 'd:\\workTest'
+
 if (isRefreshWeights):
     train_generator_aug = data_generator_aug.flow_from_directory(working_train_dir,
         target_size=(image_size, image_size),
-        batch_size=50,
+        batch_size=20,
         class_mode='categorical')
     validation_generator_aug = data_generator_aug.flow_from_directory(working_test_dir,
         target_size=(image_size, image_size),
-        batch_size=50,
+        batch_size=20,
         class_mode='categorical')
     validation_generator_no_aug = data_generator_no_aug.flow_from_directory(working_test_dir,
         target_size=(image_size, image_size),
-        batch_size=50,
+        batch_size=20,
         class_mode='categorical')
     
 
 misses = 0
 falarm = 0
 correct = 0
-isStartFreshWeights = False # start from random, otherwise start from prev
 
 
 if  not isStartFreshWeights:
     model.load_weights("wpicasso.h5")
 if not isRefreshWeights:
-    idg = data_generator_no_aug.flow_from_directory(directory=working_test_dir,
-       target_size=(image_size, image_size),batch_size=50,class_mode='categorical')
+    idg = data_generator_no_aug.flow_from_directory(directory=working_test_dir,shuffle=True,
+       target_size=(image_size, image_size),batch_size=20,class_mode='categorical')
     for imgs in idg:
       idx = (idg.batch_index - 1) * idg.batch_size
       fn=idg.filenames[idx : idx + idg.batch_size]
@@ -111,13 +118,20 @@ if not isRefreshWeights:
       yhat = np.squeeze(model.predict(imgs))
       yhatf = yhat
       thresh = yhat[:,1]
-      yhat[thresh < 0.85] = [1,0]
+      #yhat[thresh < 0.9] = [1,0]
       #yhat = yhat[yhat[:,1]<0.9]=0
       yhat = np.rint(yhat).astype(int)
       labels = np.array(imgs[1][:].astype(int))
       #img = image.array_to_img(a)
       a = np.squeeze(imgs[0])
       for i in range(0, len(yhat)):
+          print(labels[i][:])
+          if 'not' in fn[i]:  
+            labels[i][:] = [1,0]
+          else: 
+            labels[i][:] = [0,1]
+            print( 'a picasso')
+          print(labels[i][:])  
           if (labels[i][0] != yhat[i][0]) :
             print('yhat:',yhatf[i][:],'labels:',labels[i][:],'error:' ,yhatf[i][:] - labels[i][:],'filename:',fn[i])
             b = np.squeeze(a[i,:,:])
@@ -138,14 +152,15 @@ print("\n\nmodel - train_generator")
 if isRefreshWeights:
     history = model.fit_generator(train_generator_aug,
       steps_per_epoch=20,
-      epochs=30,
-      class_weight={0:3,1:1},
-      validation_data=validation_generator_aug,
-      validation_steps=3)
+      epochs=10,
+      shuffle=True,
+      #class_weight={0:5,1:1},
+      validation_data=validation_generator_no_aug,
+      validation_steps=1)
     model.save_weights("wpicasso.h5")
 model.summary()
 
-da.plotPic2(model,'d:\\workTrain\\picasso')
+#da.plotPic2(model,'d:\\workTrain\\picasso')
 #yhat = model.predict(x_test[ind,:].reshape(1,784))
 if __name__ == "main":
    main(sys.argv[1:])
