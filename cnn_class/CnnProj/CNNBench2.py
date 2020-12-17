@@ -19,6 +19,7 @@ import dataAssemble as da
 import matplotlib.pyplot as plt
 import sys, getopt
 import argparse
+from tensorflow.python.keras.utils.np_utils import to_categorical
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 ImageFile.MAX_IMAGE_PIXELS=int(4024 * 4024 * 4024 / 4 / 3)
@@ -52,21 +53,20 @@ model.add(ResNet50(# add a whole ResNet50 model
                 # channels
 ))
 
-model.add(Dense(1024, # 
-  activation='relu'
+model.add(Dense(64, # 
+  activation='softmax'
 ))
 # Now lets add a "Dense" layer to make predictions
 model.add(Dense(2, # this last layer just has 2 nodes
   activation='softmax' # apply softmax function to turn values of this layer into probabilities
 ))
 
-# do not train the first layer
-# because it is already smart
+
 # it learned cool patterns from ImageNet
 model.layers[0].trainable = False
 #model.compile(optimizer='sgd', # stochastic gradient descent (how to update Dense connections during
                                # training)
-model.compile(  optimizer=keras.optimizers.Adam(learning_rate=0.01, beta_1=0.9, beta_2=0.999, epsilon=1e-07, amsgrad=False),
+model.compile(  optimizer=keras.optimizers.Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-07, amsgrad=False),
   loss='categorical_crossentropy', # aka "log loss" -- the cost function to minimize
   #loss='mean_squared_error',
   # so 'optimizer' algorithm will minimize 'loss' function
@@ -76,65 +76,97 @@ from tensorflow.python.keras.applications.resnet50 import preprocess_input
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.python.keras.preprocessing.image import image
 image_size = 224
-data_generator_aug = ImageDataGenerator(preprocessing_function=preprocess_input, rescale=1.0,  horizontal_flip=True,vertical_flip=False,rotation_range=3,
-                                   width_shift_range = 0.1,
-                                   height_shift_range = 0.05)
-isRefreshWeights = False
-isStartFreshWeights = False # start from random, otherwise start from prev
+#data_generator_aug = ImageDataGenerator(preprocessing_function=preprocess_input, rescale=1.0,  horizontal_flip=True,brightness_range=[0.2,1.0],rotation_range=5,
+#                                   width_shift_range = 0.2,
+#                                   height_shift_range = 0.2)
 data_generator_no_aug = ImageDataGenerator(preprocessing_function=preprocess_input,rescale=1.0)
+
+
+
+
+
+isRefreshWeights = True
+isStartFreshWeights = False # start from random, otherwise start from prev
+isTrainAndTestSwapped=False
 
 working_train_dir = 'u:\\workTrain'
 working_test_dir = 'd:\\workTest'
-
+if isTrainAndTestSwapped:  
+    save=working_test_dir 
+    working_test_dir=working_train_dir
+    working_train_dir=save
+    
 if (isRefreshWeights):
-    train_generator_aug = data_generator_aug.flow_from_directory(working_train_dir,
-        target_size=(image_size, image_size),
-        batch_size=20,
-        class_mode='categorical')
-    validation_generator_aug = data_generator_aug.flow_from_directory(working_test_dir,
-        target_size=(image_size, image_size),
-        batch_size=20,
-        class_mode='categorical')
+#   train_generator_aug = data_generator_aug.flow_from_directory(working_train_dir,
+#       shuffle=True,
+#       target_size=(image_size, image_size),
+#       batch_size=20,
+#        class_mode='categorical')
+
+#    validation_generator_aug = data_generator_aug.flow_from_directory(working_test_dir,
+#       target_size=(image_size, image_size),
+#       batch_size=20,
+#        class_mode='categorical')
+
     validation_generator_no_aug = data_generator_no_aug.flow_from_directory(working_test_dir,
         target_size=(image_size, image_size),
         batch_size=20,
-        class_mode='categorical')
-    
+        class_mode='categorical')    
 
 misses = 0
 falarm = 0
 correct = 0
-
+train_generator_no_aug = data_generator_no_aug.flow_from_directory(working_train_dir,
+    shuffle=True,
+    target_size=(image_size, image_size),
+    batch_size=20,
+    class_mode='categorical')
 
 if  not isStartFreshWeights:
     model.load_weights("wpicasso.h5")
 if not isRefreshWeights:
-    idg = data_generator_no_aug.flow_from_directory(directory=working_test_dir,shuffle=True,
-       target_size=(image_size, image_size),batch_size=20,class_mode='categorical')
+    #idg = data_generator_no_aug.flow_from_directory(directory=working_test_dir,shuffle=True,
+    #   target_size=(image_size, image_size),batch_size=20,class_mode='categorical')
+    #for imgs in idg:
+    #idg = validation_generator_no_aug
+    idg = train_generator_no_aug
     for imgs in idg:
-      idx = (idg.batch_index - 1) * idg.batch_size
-      fn=idg.filenames[idx : idx + idg.batch_size]
-      print('false alarm: ',falarm,'misses: ',misses,'correct: ',correct)
-      yhat = np.squeeze(model.predict(imgs))
+      #idx = (idg.batch_index - 1) * idg.batch_size
+      #fn=idg.filenames[idx : idx + idg.batch_size]
+      chunkOfPic,labels=idg.next(); #provides next image and label
+      chunkOfPic.shape
+      labels.shape
+
+      yhat = np.squeeze(model.predict(chunkOfPic))
+      #yhat = model.predict(imgs)
+      #yclass=yhat.argmax(axis=-1)
+      #  yclass = to_categorical(yhat,2)
       yhatf = yhat
-      thresh = yhat[:,1]
-      #yhat[thresh < 0.9] = [1,0]
-      #yhat = yhat[yhat[:,1]<0.9]=0
+      if 0:
+        upperThresh = 0.96
+        thresh = yhatf[:,1]
+        yhat[thresh < upperThresh] = [1,0]
+        #thresh = yhatf[:,0]
+        #yhat[thresh > upperThresh] = [0,1]
       yhat = np.rint(yhat).astype(int)
-      labels = np.array(imgs[1][:].astype(int))
+      #yclass = np.rint(yclass).astype(int)
+      ##labels = np.array(imgs[1][:].astype(int)) # these are all the names but not in order
+      #plabel = sorted(labels)[yclass]
       #img = image.array_to_img(a)
-      a = np.squeeze(imgs[0])
+      #a = np.squeeze(imgs[0])
       for i in range(0, len(yhat)):
-          print(labels[i][:])
-          if 'not' in fn[i]:  
-            labels[i][:] = [1,0]
-          else: 
-            labels[i][:] = [0,1]
-            print( 'a picasso')
-          print(labels[i][:])  
+          #print(labels[i][:])
+          #if 'not' in fn[i]:  
+          #  labels[i][:] = [1,0]
+          #else: 
+          #  labels[i][:] = [0,1]
+          #  print( 'a picasso')
+          # print('yclass: ' ,yclass[i][:], yclass.shape, yhat.shape )  
+          #         print('Next line of labels')
+          # if (labels[i][0] != yclass[i][0][0]) :
           if (labels[i][0] != yhat[i][0]) :
-            print('yhat:',yhatf[i][:],'labels:',labels[i][:],'error:' ,yhatf[i][:] - labels[i][:],'filename:',fn[i])
-            b = np.squeeze(a[i,:,:])
+            print('yhat:',yhatf[i][:],'labels:',labels[i][:],'error:' ,yhatf[i][:] - labels[i][:])
+            b = np.squeeze(chunkOfPic[i][:])
             isPicasso = (labels[i][0] == 0)
             if isPicasso:
                 b = cv2.putText(b, 'Picasso',  (30, 30) , cv2.FONT_ITALIC,  1, (10, 0, 0) , 2, cv2.LINE_AA) 
@@ -148,13 +180,15 @@ if not isRefreshWeights:
             plt.draw()
           else:
             correct = correct + 1
+
+          print('false alarm: ',falarm,'misses: ',misses,'correct: ',correct)
 print("\n\nmodel - train_generator")
 if isRefreshWeights:
-    history = model.fit_generator(train_generator_aug,
+    history = model.fit_generator(train_generator_no_aug,
       steps_per_epoch=20,
-      epochs=10,
+      epochs=23,
       shuffle=True,
-      #class_weight={0:5,1:1},
+      class_weight='auto',
       validation_data=validation_generator_no_aug,
       validation_steps=1)
     model.save_weights("wpicasso.h5")
