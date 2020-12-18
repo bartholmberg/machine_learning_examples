@@ -70,7 +70,7 @@ model.compile(  optimizer=keras.optimizers.Adam(learning_rate=0.001, beta_1=0.9,
   loss='categorical_crossentropy', # aka "log loss" -- the cost function to minimize
   #loss='mean_squared_error',
   # so 'optimizer' algorithm will minimize 'loss' function
-  metrics=['accuracy'] # ask it to report % of correct predictions
+  metrics=['accuracy','FalsePositives','FalseNegatives','TruePositives','TrueNegatives'] # ask it to report % of correct predictions
 )
 from tensorflow.python.keras.applications.resnet50 import preprocess_input
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
@@ -86,7 +86,7 @@ data_generator_no_aug = ImageDataGenerator(preprocessing_function=preprocess_inp
 
 
 isRefreshWeights = True
-isStartFreshWeights = False # start from random, otherwise start from prev
+isStartFreshWeights = True # start from random, otherwise start from prev
 isTrainAndTestSwapped=False
 
 working_train_dir = 'u:\\workTrain'
@@ -116,7 +116,7 @@ if (isRefreshWeights):
 misses = 0
 falarm = 0
 correct = 0
-train_generator_no_aug = data_generator_no_aug.flow_from_directory(working_train_dir,
+train_generator_no_aug = data_generator_no_aug.flow_from_directory(working_train_dir, 
     shuffle=True,
     target_size=(image_size, image_size),
     batch_size=20,
@@ -130,10 +130,13 @@ if not isRefreshWeights:
     #for imgs in idg:
     #idg = validation_generator_no_aug
     idg = train_generator_no_aug
-    for imgs in idg:
+    #for imgs in idg:
+    #for j in range(1,len(idg)
+    chunkOfPic,labels=idg.next();
+    while len(chunkOfPic) !=0 :
       #idx = (idg.batch_index - 1) * idg.batch_size
       #fn=idg.filenames[idx : idx + idg.batch_size]
-      chunkOfPic,labels=idg.next(); #provides next image and label
+    
       chunkOfPic.shape
       labels.shape
 
@@ -148,13 +151,10 @@ if not isRefreshWeights:
         yhat[thresh < upperThresh] = [1,0]
         #thresh = yhatf[:,0]
         #yhat[thresh > upperThresh] = [0,1]
+        upperThresh = 0.96
       yhat = np.rint(yhat).astype(int)
-      #yclass = np.rint(yclass).astype(int)
-      ##labels = np.array(imgs[1][:].astype(int)) # these are all the names but not in order
-      #plabel = sorted(labels)[yclass]
-      #img = image.array_to_img(a)
-      #a = np.squeeze(imgs[0])
-      for i in range(0, len(yhat)):
+
+      for i in range(0, len(yhat)-1):
           #print(labels[i][:])
           #if 'not' in fn[i]:  
           #  labels[i][:] = [1,0]
@@ -180,19 +180,45 @@ if not isRefreshWeights:
             plt.draw()
           else:
             correct = correct + 1
-
           print('false alarm: ',falarm,'misses: ',misses,'correct: ',correct)
+      chunkOfPic,labels=idg.next(); #provides next image and label
+
 print("\n\nmodel - train_generator")
+
 if isRefreshWeights:
-    history = model.fit_generator(train_generator_no_aug,
-      steps_per_epoch=20,
-      epochs=23,
-      shuffle=True,
-      class_weight='auto',
-      validation_data=validation_generator_no_aug,
-      validation_steps=1)
+    #history = model.fit_generator(generator=train_generator_no_aug,
+    #  steps_per_epoch=20,
+    #  epochs=5,
+    #  use_multiprocessing=True,
+    #  workers=2,
+    #  shuffle=True,
+    #  class_weight='auto',
+    #  validation_data=validation_ge
+    chunkOfPic,labels=train_generator_no_aug.next()
+    i=1;
+    while(len(chunkOfPic)>0) :
+        history = model.fit(
+          x=chunkOfPic,
+          y=labels,
+          batch_size=20,
+          steps_per_epoch=1,
+          epochs=1,
+          use_multiprocessing=True,
+          workers=2,
+          shuffle=True)
+        yhat = np.squeeze(model.predict(chunkOfPic))
+        errs=yhat.transpose()-labels.transpose()
+        errs= np.rint(errs).astype(int)
+        #print( "   yhat: ", np.rint( yhat.transpose() ))
+        #print( "  label: ",np.rint(labels.transpose() ))
+        print( "  errs: ",errs[:][0])
+        chunkOfPic,labels=train_generator_no_aug.next()
+        if (i%10 ==0) or ( sum( abs(errs[:][0])) < 1) :
+           model.save_weights("wpicasso.h5")
+        i += 1
     model.save_weights("wpicasso.h5")
-model.summary()
+
+    model.summary()
 
 #da.plotPic2(model,'d:\\workTrain\\picasso')
 #yhat = model.predict(x_test[ind,:].reshape(1,784))
