@@ -86,7 +86,7 @@ data_generator_no_aug = ImageDataGenerator(preprocessing_function=preprocess_inp
 
 
 isRefreshWeights = True
-isStartFreshWeights = True # start from random, otherwise start from prev
+isStartFreshWeights = False # start from random, otherwise start from prev
 isTrainAndTestSwapped=False
 
 working_train_dir = 'u:\\workTrain'
