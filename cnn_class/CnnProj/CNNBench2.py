@@ -195,26 +195,34 @@ if isRefreshWeights:
     #  class_weight='auto',
     #  validation_data=validation_ge
     chunkOfPic,labels=train_generator_no_aug.next()
-    i=1;
+    i=0;
     while(len(chunkOfPic)>0) :
         history = model.fit(
           x=chunkOfPic,
           y=labels,
           batch_size=20,
           steps_per_epoch=1,
-          epochs=1,
+          epochs=4,
           use_multiprocessing=True,
           workers=2,
           shuffle=True)
         yhat = np.squeeze(model.predict(chunkOfPic))
-        errs=yhat.transpose()-labels.transpose()
-        errs= np.rint(errs).astype(int)
+        errt=labels[:,0]-yhat[:,0]
+        labx=labels[:,0] 
+        yhatx=yhat[:,0]
+        #errs= np.rint(errs).astype(int)
         #print( "   yhat: ", np.rint( yhat.transpose() ))
         #print( "  label: ",np.rint(labels.transpose() ))
-        print( "  errs: ",errs[:][0])
+        
+
+        #np.set_printoptions(precision=3)
+        #print ( errt)
         chunkOfPic,labels=train_generator_no_aug.next()
-        if (i%10 ==0) or ( sum( abs(errs[:][0])) < 1) :
+        if (i%10 ==0) :
            model.save_weights("wpicasso.h5")
+           print( ["{:0.2f}".format(x) for x in labx ]  )
+           print( ["{:0.2f}".format(x) for x in yhatx ]  )
+           print( ["{:0.2f}".format(x) for x in errt ]  )
         i += 1
     model.save_weights("wpicasso.h5")
 
