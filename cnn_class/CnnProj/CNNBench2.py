@@ -209,7 +209,7 @@ if isRefreshWeights:
           y=labels,
           batch_size=20,
           steps_per_epoch=10,
-          epochs=1,
+          epochs=2,
           use_multiprocessing=True,
           workers=2,
           shuffle=True)
@@ -219,7 +219,7 @@ if isRefreshWeights:
         yhatx=yhat[:,0]
         yhatx=(yhatx > detectionThreshold).astype(int)
         errxf=labx-yhat[:,0]
-        errx=abs(labx-yhatx)
+        errx=(labx-yhatx).astype(int)
         if 0:
             upperThresh = 0.96
             thresh = yhatf[:,1]
@@ -241,11 +241,15 @@ if isRefreshWeights:
            print( ["{:0.1f}".format(x) for x in yhatx ]  )
            print( ["{:0.1f}".format(x) for x in errx ]  )
            print( ["{:0.3f}".format(x) for x in errxf ]  )
-        error_index = errx.index(1)
+        error_index = np.squeeze( np.where((errx ==1) | (errx == -1)) )
         for eind in error_index:
-            #chunkOfPic[eind]
             b = np.squeeze(chunkOfPic[eind][:])
-            plt.imshow( b.astype('uint8')-255 )
+            if( labx[eind] > 0 ):
+                b = cv2.putText(b, 'Picasso',  (30, 30) , cv2.FONT_ITALIC,  1, (10, 0, 0) , 2, cv2.LINE_AA) 
+            else:
+                b = cv2.putText(b, 'Not Picasso',  (30, 30) , cv2.FONT_ITALIC,  1, (0, 0, 10) , 2, cv2.LINE_AA) 
+
+            plt.imshow( b.astype('uint8')+255)
             plt.show(block=False)
             plt.pause(0.5)
             plt.draw()
