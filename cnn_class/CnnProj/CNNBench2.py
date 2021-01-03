@@ -200,7 +200,8 @@ if isRefreshWeights:
     #  shuffle=True,
     #  class_weight='auto',
     #  validation_data=validation_ge
-    chunkOfPic,labels=train_generator_no_aug.next()
+    #chunkOfPic,labels=train_generator_no_aug.next()
+    chunkOfPic,labels=validation_generator_no_aug.next()
     i=0;
     detectionThreshold=0.02
     while(len(chunkOfPic)>0) :
@@ -208,7 +209,7 @@ if isRefreshWeights:
           x=chunkOfPic,
           y=labels,
           batch_size=20,
-          steps_per_epoch=10,
+          steps_per_epoch=1,
           epochs=2,
           use_multiprocessing=True,
           workers=2,
@@ -220,12 +221,6 @@ if isRefreshWeights:
         yhatx=(yhatx > detectionThreshold).astype(int)
         errxf=labx-yhat[:,0]
         errx=(labx-yhatx).astype(int)
-        if 0:
-            upperThresh = 0.96
-            thresh = yhatf[:,1]
-            yhat[thresh < upperThresh] = [1,0]
-            upperThresh = 0.96
-            yhat = np.rint(yhat).astype(int)
         m_acc = history.history.get('acc')[-1] 
         print( "Accuracy: ",m_acc)
         # only get new data if the accuracy is good enough
@@ -249,7 +244,7 @@ if isRefreshWeights:
             else:
                 b = cv2.putText(b, 'Not Picasso',  (30, 30) , cv2.FONT_ITALIC,  1, (0, 0, 10) , 2, cv2.LINE_AA) 
 
-            plt.imshow( b.astype('uint8')+255)
+            plt.imshow( b.astype('uint8')+120)
             plt.show(block=False)
             plt.pause(0.5)
             plt.draw()
