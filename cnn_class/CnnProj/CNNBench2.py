@@ -54,7 +54,7 @@ model.add(ResNet50(# add a whole ResNet50 model
 ))
 
 model.add(Dense(64, # 
-  activation='softmax'
+  activation='relu'
 ))
 # Now lets add a "Dense" layer to make predictions
 model.add(Dense(2, # this last layer just has 2 nodes
@@ -65,12 +65,14 @@ model.add(Dense(2, # this last layer just has 2 nodes
 # it learned cool patterns from ImageNet
 model.layers[0].trainable = False
 #model.compile(optimizer='sgd', # stochastic gradient descent (how to update Dense connections during
-                               # training)
-model.compile(  optimizer=keras.optimizers.Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-07, amsgrad=False),
-  loss='categorical_crossentropy', # aka "log loss" -- the cost function to minimize
-  #loss='mean_squared_error',
+tf.keras.metrics.BinaryAccuracy(name="binary_accuracy", dtype=None, threshold=0.5)                            # training)
+#model.compile(  optimizer=keras.optimizers.Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-07, amsgrad=False),
+model.compile(  optimizer=keras.optimizers.Adadelta(learning_rate=0.001, rho=0.95, epsilon=1e-07,name='Adadelta'),
+  #oss='sparse_categorical_crossentropy',
+  loss='mean_squared_error',
   # so 'optimizer' algorithm will minimize 'loss' function
-  metrics=['accuracy','FalsePositives','FalseNegatives','TruePositives','TrueNegatives'] # ask it to report % of correct predictions
+  #metics=['accuracy',BinaryAccuracy(name="binary_accuracy", dtype=None, threshold=0.5)],
+  metrics=['accuracy','TruePositives','FalsePositives'] # ask it to report % of correct predictions
 )
 from tensorflow.python.keras.applications.resnet50 import preprocess_input
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
@@ -110,7 +112,10 @@ if (isRefreshWeights):
 
     validation_generator_no_aug = data_generator_no_aug.flow_from_directory(working_test_dir,
         target_size=(image_size, image_size),
-        batch_size=20,
+        batch_size=40,
+#        labels='inferred',
+#        class_names=['non-picasso', 'picasso'],
+#        class_mode='binary')   
         class_mode='categorical')    
 
 misses = 0
@@ -119,7 +124,8 @@ correct = 0
 train_generator_no_aug = data_generator_no_aug.flow_from_directory(working_train_dir, 
     shuffle=True,
     target_size=(image_size, image_size),
-    batch_size=20,
+    batch_size=40,
+#    class_mode='binary')   
     class_mode='categorical')
 
 if  not isStartFreshWeights:
@@ -196,33 +202,53 @@ if isRefreshWeights:
     #  validation_data=validation_ge
     chunkOfPic,labels=train_generator_no_aug.next()
     i=0;
+    detectionThreshold=0.02
     while(len(chunkOfPic)>0) :
         history = model.fit(
           x=chunkOfPic,
           y=labels,
           batch_size=20,
-          steps_per_epoch=1,
-          epochs=4,
+          steps_per_epoch=10,
+          epochs=1,
           use_multiprocessing=True,
           workers=2,
           shuffle=True)
         yhat = np.squeeze(model.predict(chunkOfPic))
-        errt=labels[:,0]-yhat[:,0]
+      
         labx=labels[:,0] 
         yhatx=yhat[:,0]
-        #errs= np.rint(errs).astype(int)
-        #print( "   yhat: ", np.rint( yhat.transpose() ))
-        #print( "  label: ",np.rint(labels.transpose() ))
-        
-
-        #np.set_printoptions(precision=3)
-        #print ( errt)
-        chunkOfPic,labels=train_generator_no_aug.next()
+        yhatx=(yhatx > detectionThreshold).astype(int)
+        errxf=labx-yhat[:,0]
+        errx=abs(labx-yhatx)
+        if 0:
+            upperThresh = 0.96
+            thresh = yhatf[:,1]
+            yhat[thresh < upperThresh] = [1,0]
+            upperThresh = 0.96
+            yhat = np.rint(yhat).astype(int)
+        m_acc = history.history.get('acc')[-1] 
+        print( "Accuracy: ",m_acc)
+        # only get new data if the accuracy is good enough
+        # otherwise train on the same data
+        if ( m_acc > 0.78 ) :
+            chunkOfPic,labels=train_generator_no_aug.next()
+            print( "Good Accuracy, get new chunk")
+        else:
+            print( "Bad Accuracy, train on same chunk")
         if (i%10 ==0) :
            model.save_weights("wpicasso.h5")
-           print( ["{:0.2f}".format(x) for x in labx ]  )
-           print( ["{:0.2f}".format(x) for x in yhatx ]  )
-           print( ["{:0.2f}".format(x) for x in errt ]  )
+           print( ["{:0.1f}".format(x) for x in labx ]  )
+           print( ["{:0.1f}".format(x) for x in yhatx ]  )
+           print( ["{:0.1f}".format(x) for x in errx ]  )
+           print( ["{:0.3f}".format(x) for x in errxf ]  )
+        error_index = errx.index(1)
+        for eind in error_index:
+            #chunkOfPic[eind]
+            b = np.squeeze(chunkOfPic[eind][:])
+            plt.imshow( b.astype('uint8')-255 )
+            plt.show(block=False)
+            plt.pause(0.5)
+            plt.draw()
         i += 1
     model.save_weights("wpicasso.h5")
 
