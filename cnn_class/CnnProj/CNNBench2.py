@@ -112,6 +112,7 @@ if (isRefreshWeights):
 
     validation_generator_no_aug = data_generator_no_aug.flow_from_directory(working_test_dir,
         target_size=(image_size, image_size),
+        shuffle=True,
         batch_size=40,
 #        labels='inferred',
 #        class_names=['non-picasso', 'picasso'],
@@ -203,17 +204,21 @@ if isRefreshWeights:
     #chunkOfPic,labels=train_generator_no_aug.next()
     chunkOfPic,labels=validation_generator_no_aug.next()
     i=0;
-    detectionThreshold=0.02
+    #detectionThreshold=0.02
+    detectionThreshold=0.006
+    numFalse=0
+    numMiss=0
+    numTotal=0
     while(len(chunkOfPic)>0) :
-        history = model.fit(
-          x=chunkOfPic,
-          y=labels,
-          batch_size=20,
-          steps_per_epoch=1,
-          epochs=2,
-          use_multiprocessing=True,
-          workers=2,
-          shuffle=True)
+        #history = model.fit(
+        #  x=chunkOfPic,
+        #  y=labels,
+        #  batch_size=20,
+        #  steps_per_epoch=10,
+        #  epochs=2,
+        #  use_multiprocessing=True,
+        #  workers=2,
+        #  shuffle=True)
         yhat = np.squeeze(model.predict(chunkOfPic))
       
         labx=labels[:,0] 
@@ -221,32 +226,43 @@ if isRefreshWeights:
         yhatx=(yhatx > detectionThreshold).astype(int)
         errxf=labx-yhat[:,0]
         errx=(labx-yhatx).astype(int)
-        m_acc = history.history.get('acc')[-1] 
-        print( "Accuracy: ",m_acc)
+        #m_acc = history.history.get('acc')[-1] 
+        m_acc=1.0
+        #print( "Accuracy: ",m_acc)
         # only get new data if the accuracy is good enough
         # otherwise train on the same data
         if ( m_acc > 0.78 ) :
             chunkOfPic,labels=train_generator_no_aug.next()
+            #chunkOfPic,labels=validation_generator_no_aug.next()
             print( "Good Accuracy, get new chunk")
         else:
             print( "Bad Accuracy, train on same chunk")
-        if (i%10 ==0) :
-           model.save_weights("wpicasso.h5")
+        #if (i%10 ==0) :
+        if (0==0) :
+           #model.save_weights("wpicasso.h5")
            print( ["{:0.1f}".format(x) for x in labx ]  )
            print( ["{:0.1f}".format(x) for x in yhatx ]  )
            print( ["{:0.1f}".format(x) for x in errx ]  )
            print( ["{:0.3f}".format(x) for x in errxf ]  )
+           numMiss= np.count_nonzero(errx == 1) + numMiss
+           numFalse = np.count_nonzero(errx == -1) + numFalse
+           numTotal = numTotal+40
+           print( 'numMiss: ', numMiss, 'numFalse: ', numFalse, 'numTotal: ', numTotal)
+           print( 'False Alarm Rate: ', numFalse/numTotal, 'Miss Rate: ', numMiss/numTotal)
+
         error_index = np.squeeze( np.where((errx ==1) | (errx == -1)) )
+        if (error_index.size == 0): continue
         for eind in error_index:
             b = np.squeeze(chunkOfPic[eind][:])
             if( labx[eind] > 0 ):
                 b = cv2.putText(b, 'Picasso',  (30, 30) , cv2.FONT_ITALIC,  1, (10, 0, 0) , 2, cv2.LINE_AA) 
             else:
                 b = cv2.putText(b, 'Not Picasso',  (30, 30) , cv2.FONT_ITALIC,  1, (0, 0, 10) , 2, cv2.LINE_AA) 
-
-            plt.imshow( b.astype('uint8')+120)
+            b=(b-np.amin(b))
+            b=255*(b/np.amax(b))
+            plt.imshow( b.astype('uint8') )
             plt.show(block=False)
-            plt.pause(0.5)
+            plt.pause(2)
             plt.draw()
         i += 1
     model.save_weights("wpicasso.h5")
