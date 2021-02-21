@@ -40,13 +40,15 @@ def main():
 
     # Load the cube map
     # cubemap = ReadCubeMap(cube_path, '/', '.jpg', 0)
-    cubemap = ReadCubeMap(cube_path, '/', '.jpg', 1)
+    #cubemap = ReadCubeMap(cube_path, '/', '.jpg', 1)
+    cubemap = ReadCubeMap(cube_path, '/', '.png', 1)
     # cubemap = ReadCubeMap(cube_path, '/skybox', '.jpg', 2)
 
     # Load the skybox
     # Read it again as there is no deep copy for vtkTexture
     # skybox = ReadCubeMap(cube_path, '/', '.jpg', 0)
-    skybox = ReadCubeMap(cube_path, '/', '.jpg', 1)
+    #skybox = ReadCubeMap(cube_path, '/', '.jpg', 1)
+    skybox = ReadCubeMap(cube_path, '/', '.png', 1)
     # skybox = ReadCubeMap(cube_path, '/skybox', '.jpg', 2)
     skybox.InterpolateOn()
     skybox.RepeatOff()
@@ -248,10 +250,12 @@ def ReadCubeMap(folderRoot, fileRoot, ext, key):
     # components.
     fileNames = {
         0: ['right', 'left', 'top', 'bottom', 'front', 'back'],
-        1: ['posx', 'negx', 'posy', 'negy', 'posz', 'negz'],
+        1: ['bpano2_xp', 'bpano2_xn', 'bpano2_yp', 'bpano2_yn', 'bpano2_zp', 'bpano2_zn'],
+#       1: ['posx', 'negx', 'posy', 'negy', 'posz', 'negz'],
         2: ['-px', '-nx', '-py', '-ny', '-pz', '-nz'],
         3: ['0', '1', '2', '3', '4', '5'],
-        4: ['posx2', 'negx2', 'posy2', 'negy2', 'posz2', 'negz2'],
+#        4: ['posx2', 'negx2', 'posy2', 'negy2', 'posz2', 'negz2'],
+#        5: ['posx', 'negx', 'posy', 'negy', 'posz', 'negz']
         }
     if key in fileNames:
         fns = fileNames[key]
