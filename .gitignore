@@ -14,3 +14,17 @@ large_files/*
 nlp_class2/chunking/*
 cnn_class/CnnProj/Data/*
 cnn_class/CnnProj/.vs/*
+cnn_class/CnnProj/pano/cube_horizon.png
+cnn_class/CnnProj/pano/demo_equirec.png
+cnn_class/CnnProj/pano/cube_dice.png
+cnn_class/CnnProj/pano/example_e2c.png
+cnn_class/CnnProj/LICENSE
+cnn_class/CnnProj/pano/demo_cube.png
+cnn_class/CnnProj/pano/demo_pers.png
+cnn_class/CnnProj/pano/example_c2e.png
+cnn_class/CnnProj/pano/example_e2p.png
+cnn_class/CnnProj/pano/example_input.png
+cnn_class/CnnProj/pano/teaser_2planar.png
+cnn_class/CnnProj/pano/teaser_convertion.png
+cnn_class/CnnProj/MANIFEST.in
+cnn_class/CnnProj/README.md
