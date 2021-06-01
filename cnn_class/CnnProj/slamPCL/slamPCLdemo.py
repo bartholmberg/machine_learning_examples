@@ -23,7 +23,7 @@ if __name__ == "__main__":
     vis.add_geometry(source)
     vis.add_geometry(target)
     threshold = 0.05
-    icp_iteration = 100
+    icp_iteration = 10000
     save_image = False
 
     for i in range(icp_iteration):
