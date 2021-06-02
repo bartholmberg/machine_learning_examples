@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{847a5c9b-6b8b-47a7-9acb-6651ef6cf106}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>D:\repo\Open3D\examples\python\reconstruction_system\sensors\azure_kinect_viewer.py</StartupFile>
+    <SearchPath>..\..\..\Open3D\examples\python\</SearchPath>
+    <WorkingDirectory>D:\repo\Open3D\examples\python\reconstruction_system\sensors</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId>CondaEnv|CondaEnv|cnnwork</InterpreterId>
+    <TestFramework>none</TestFramework>
+    <IsWindowsApplication>False</IsWindowsApplication>
+    <UnitTestPattern>test*.py</UnitTestPattern>
+    <UnitTestRootDirectory>.</UnitTestRootDirectory>
+    <CommandLineArguments>--list</CommandLineArguments>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="bckyrd\bpano2_xn.png" />
+    <Content Include="bckyrd\bpano2_xp.png" />
+    <Content Include="bckyrd\bpano2_yn.png" />
+    <Content Include="bckyrd\bpano2_yp.png" />
+    <Content Include="bckyrd\bpano2_zn.png" />
+    <Content Include="bckyrd\bpano2_zp.png" />
+    <Content Include="pano\bpano2_e2c.png" />
+    <Content Include="rendercommandExample.txt" />
+    <Content Include="vtk_Base_Color.png" />
+    <Content Include="vtk_dark_bkg.png" />
+    <Content Include="vtk_Material.png" />
+    <Content Include="vtk_Normal.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CNNBench1.py" />
+    <Compile Include="CNNBench2.py" />
+    <Compile Include="convert360.py" />
+    <Compile Include="dataAssemble.py" />
+    <Compile Include="MedicalDemo2.py" />
+    <Compile Include="moveLabeledData.py" />
+    <Compile Include="physicalRender.py" />
+    <Compile Include="setup.py" />
+    <Compile Include="slamPCLdemo.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="bckyrd" />
+    <Folder Include="pano" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="CondaEnv|CondaEnv|cnnwork" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+</Project>

@@ -2,8 +2,6 @@
 wpi*.h5
 *.pyc
 *.csv
-*.pyproj
-*.sln
 checkpoint*
 foo*
 bench3*
