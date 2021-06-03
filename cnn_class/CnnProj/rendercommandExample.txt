@@ -3,4 +3,4 @@ pip install py360convert
 python MedicalDemo2.py fullHead.mhd
 python convert360.py --convert e2c --i pano/bpano2.jpg --o pano/bpano2_e2c.png --w 2711
 python physicalrender.py d:\repo\machine_learning_examples\cnn_class\CnnProj\bckyrd  vtk_Material.png vtk_Base_Color.png vtk_normal.png vtk_dark_bkg.png cow.obj
-python slamPCLdemo.py
+python slamPCLdemo.py  
