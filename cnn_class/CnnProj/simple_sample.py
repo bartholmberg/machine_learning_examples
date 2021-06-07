@@ -22,7 +22,7 @@ if __name__ == "__main__":
     k4a = PyK4A(
         Config(
             color_resolution=pyk4a.ColorResolution.RES_720P,
-            camera_fps=pyk4a.FPS.FPS_15,
+            camera_fps=pyk4a.FPS.FPS_5,
             depth_mode=pyk4a.DepthMode.NFOV_2X2BINNED,
             synchronized_images_only=True,
         )
@@ -66,11 +66,11 @@ if __name__ == "__main__":
         if (first):
             vis.add_geometry(currAzPcd)
             first=False
-        vis.update_geometry(azPcd)
-        #vis.update_geometry(currAzPcd)
+        #vis.update_geometry(azPcd)
+        vis.update_geometry(currAzPcd)
         vis.poll_events()
         vis.update_renderer()
-        azPcd=currAzPcd
+        #azPcd=currAzPcd
         #o3d.visualization.draw()
         #vis.run()
 
