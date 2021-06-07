@@ -11,7 +11,8 @@ import traceback
 import sys
 import ctypes
 import os
-from pyk4a import PyK4A
+import pyk4a
+from pyk4a import Config, PyK4A
 from matplotlib import pyplot as plt
 # Add .. to the import path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -20,22 +21,25 @@ import k4a
 
 
 if __name__ == "__main__":
-    k4a = PyK4A()
+    k4a = PyK4A(
+        Config(
+            color_resolution=pyk4a.ColorResolution.RES_720P,
+            camera_fps=pyk4a.FPS.FPS_5,
+            depth_mode=pyk4a.DepthMode.NFOV_UNBINNED,
+            synchronized_images_only=True,
+        )
+    )
     k4a.start()
-    #pcd = o3d.geometry.PointCloud()
-    #np_points = np.random.rand(100, 3)
 
-    #pcd.points = o3d.utility.Vector3dVector(np_points)
 
 # From Open3D to numpy
     #np_points = np.asarray(pcd.points)
     capture = k4a.get_capture()
     img_color = capture.color
-    source_raw=capture.depth_point_cloud
+
     azPcd = o3d.geometry.PointCloud()
 
-    source_raw=source_raw.reshape(source_raw.shape[0]*source_raw.shape[1],3);
-    azPcd.points = o3d.utility.Vector3dVector(source_raw)
+    azPcd.points = o3d.utility.Vector3dVector(capture.depth_point_cloud.reshape((-1, 3)))
 
 
     #source = azPcd.voxel_down_sample(voxel_size=0.002)
@@ -44,15 +48,11 @@ if __name__ == "__main__":
 
     vis.create_window()
     vis.add_geometry(azPcd)
-    #vis.update_geometry(azPcd)
-    #vis.poll_events()
-    #vis.update_renderer()
+
     while 1:
         capture = k4a.get_capture()
-        #source_raw=capture.depth_point_cloud
-        source_raw=capture.depth_point_cloud
-        source_raw=source_raw.reshape(source_raw.shape[0]*source_raw.shape[1],3)
-        azPcd.points = o3d.utility.Vector3dVector(source_raw)
+        points = capture.depth_point_cloud.reshape((-1, 3))
+        azPcd.points =o3d.utility.Vector3dVector(points)
         vis.update_geometry(azPcd)
         vis.poll_events()
         vis.update_renderer()
