@@ -30,8 +30,6 @@ if __name__ == "__main__":
         )
     )
     k4a.start()
-
-
 # From Open3D to numpy
     #np_points = np.asarray(pcd.points)
     capture = k4a.get_capture()
@@ -41,8 +39,8 @@ if __name__ == "__main__":
 
     azPcd.points = o3d.utility.Vector3dVector(capture.depth_point_cloud.reshape((-1, 3)))
     azPcd.colors =  o3d.utility.Vector3dVector(capture.transformed_color[..., (2, 1, 0)].reshape((-1, 3)))
-
-
+    points = np.asarray(azPcd.points)
+    colors = np.asarray(azPcd.colors)
     #source = azPcd.voxel_down_sample(voxel_size=0.002)
 
     vis = o3d.visualization.Visualizer()
@@ -52,15 +50,15 @@ if __name__ == "__main__":
 
     while 1:
         capture = k4a.get_capture()
-        points = capture.depth_point_cloud.reshape((-1, 3))
-        azPcd.points =o3d.utility.Vector3dVector(points)
-        azPcd.colors =  o3d.utility.Vector3dVector(capture.transformed_color.reshape((-1, 3)))
+        #points = capture.depth_point_cloud.reshape((-1, 3))
+        azPcd.points =  o3d.utility.Vector3dVector(capture.depth_point_cloud.reshape((-1, 3)))
+        #azPcd.colors =  o3d.utility.Vector3dVector(capture.transformed_color.reshape((-1, 3)))
+        azPcd.colors =  o3d.utility.Vector3dVector( capture.transformed_color[..., (2, 1, 0)].reshape((-1, 3)) /255.0 )
         vis.update_geometry(azPcd)
         vis.poll_events()
         vis.update_renderer()
         #o3d.visualization.draw()
         #vis.run()
-
 
     plt.imshow(img_color[:, :, 2::-1]) # BGRA to RGB
     plt.show()
