@@ -25,7 +25,7 @@ if __name__ == "__main__":
         Config(
             color_resolution=pyk4a.ColorResolution.RES_720P,
             camera_fps=pyk4a.FPS.FPS_5,
-            depth_mode=pyk4a.DepthMode.NFOV_UNBINNED,
+            depth_mode=pyk4a.DepthMode.NFOV_2X2BINNED,
             synchronized_images_only=True,
         )
     )
@@ -40,6 +40,7 @@ if __name__ == "__main__":
     azPcd = o3d.geometry.PointCloud()
 
     azPcd.points = o3d.utility.Vector3dVector(capture.depth_point_cloud.reshape((-1, 3)))
+    azPcd.colors =  o3d.utility.Vector3dVector(capture.transformed_color[..., (2, 1, 0)].reshape((-1, 3)))
 
 
     #source = azPcd.voxel_down_sample(voxel_size=0.002)
@@ -53,6 +54,7 @@ if __name__ == "__main__":
         capture = k4a.get_capture()
         points = capture.depth_point_cloud.reshape((-1, 3))
         azPcd.points =o3d.utility.Vector3dVector(points)
+        azPcd.colors =  o3d.utility.Vector3dVector(capture.transformed_color.reshape((-1, 3)))
         vis.update_geometry(azPcd)
         vis.poll_events()
         vis.update_renderer()
