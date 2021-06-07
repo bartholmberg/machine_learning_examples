@@ -18,13 +18,11 @@ from matplotlib import pyplot as plt
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import k4a
 
-
-
 if __name__ == "__main__":
     k4a = PyK4A(
         Config(
             color_resolution=pyk4a.ColorResolution.RES_720P,
-            camera_fps=pyk4a.FPS.FPS_5,
+            camera_fps=pyk4a.FPS.FPS_15,
             depth_mode=pyk4a.DepthMode.NFOV_2X2BINNED,
             synchronized_images_only=True,
         )
@@ -34,29 +32,45 @@ if __name__ == "__main__":
     #np_points = np.asarray(pcd.points)
     capture = k4a.get_capture()
     img_color = capture.color
+    srcr = o3d.io.read_point_cloud("D:/repo/Open3D/examples/test_data/ICP/cloud_bin_0.pcd")
 
+    src = srcr.voxel_down_sample(voxel_size=0.02)
     azPcd = o3d.geometry.PointCloud()
 
     azPcd.points = o3d.utility.Vector3dVector(capture.depth_point_cloud.reshape((-1, 3)))
     azPcd.colors =  o3d.utility.Vector3dVector(capture.transformed_color[..., (2, 1, 0)].reshape((-1, 3)))
     points = np.asarray(azPcd.points)
     colors = np.asarray(azPcd.colors)
-    #source = azPcd.voxel_down_sample(voxel_size=0.002)
+    azPcd = azPcd.voxel_down_sample(voxel_size=0.02)
 
     vis = o3d.visualization.Visualizer()
 
     vis.create_window()
     vis.add_geometry(azPcd)
-
+    flip_transform = [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]]
+    currAzPcd=o3d.geometry.PointCloud()
+    first = True
     while 1:
         capture = k4a.get_capture()
-        #points = capture.depth_point_cloud.reshape((-1, 3))
-        azPcd.points =  o3d.utility.Vector3dVector(capture.depth_point_cloud.reshape((-1, 3)))
-        #azPcd.colors =  o3d.utility.Vector3dVector(capture.transformed_color.reshape((-1, 3)))
-        azPcd.colors =  o3d.utility.Vector3dVector( capture.transformed_color[..., (2, 1, 0)].reshape((-1, 3)) /255.0 )
+
+        currAzPcd.points =  o3d.utility.Vector3dVector(capture.depth_point_cloud.reshape((-1, 3)))
+        currAzPcd.colors =  o3d.utility.Vector3dVector( capture.transformed_color[..., (2, 1, 0)].reshape((-1, 3)) /255.0 )
+        #azPcd.points =  o3d.utility.Vector3dVector(capture.depth_point_cloud.reshape((-1, 3)))
+        #azPcd.colors =  o3d.utility.Vector3dVector( capture.transformed_color[..., (2, 1, 0)].reshape((-1, 3)) /255.0 )
+
+
+        #currAzPcd = currAzPcd.voxel_down_sample(voxel_size=0.02)
+        #reg_p2l = o3d.pipelines.registration.registration_icp( source, target, threshold, np.identity(4),
+        #   o3d.pipelines.registration.TransformationEstimationPointToPlane(),
+        #   o3d.pipelines.registration.ICPConvergenceCriteria(max_iteration=1))
+        if (first):
+            vis.add_geometry(currAzPcd)
+            first=False
         vis.update_geometry(azPcd)
+        #vis.update_geometry(currAzPcd)
         vis.poll_events()
         vis.update_renderer()
+        azPcd=currAzPcd
         #o3d.visualization.draw()
         #vis.run()
 
