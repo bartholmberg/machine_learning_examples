@@ -23,7 +23,7 @@ if __name__ == "__main__":
         Config(
             color_resolution=pyk4a.ColorResolution.RES_720P,
             camera_fps=pyk4a.FPS.FPS_5,
-            depth_mode=pyk4a.DepthMode.NFOV_2X2BINNED,
+            depth_mode=pyk4a.DepthMode.NFOV_2X2BINNED ,
             synchronized_images_only=True,
         )
     )
@@ -38,22 +38,23 @@ if __name__ == "__main__":
 
     azPcd.points = o3d.utility.Vector3dVector(capture.depth_point_cloud.reshape((-1, 3)))
     azPcd.colors =  o3d.utility.Vector3dVector(capture.transformed_color[..., (2, 1, 0)].reshape((-1, 3)))
-    azPcd.transform(flip_transform)
+    
     azPcd.estimate_normals()
 
-    azPcd.orient_normals_consistent_tangent_plane(100)
-    azPcd.estimate_normals()
+    #azPcd.orient_normals_consistent_tangent_plane(100)
+    #azPcd.estimate_normals()
     #points = np.asarray(azPcd.points)
     #colors = np.asarray(azPcd.colors)
     #azPcd = azPcd.voxel_down_sample(voxel_size=0.02)
-    o3d.visualization.draw_geometries([azPcd], point_show_normal=True)
+    azPcd.transform(flip_transform)
+    #o3d.visualization.draw_geometries([azPcd], point_show_normal=True)
     vis = o3d.visualization.Visualizer()
 
     vis.create_window()
-    vis.add_geometry(azPcd)
+    #vis.add_geometry(azPcd)
 
     nxtAzPcd=o3d.geometry.PointCloud()
-
+    vis.add_geometry(nxtAzPcd)
     threshold = 0.05
     first = True
     while 1:
@@ -77,10 +78,10 @@ if __name__ == "__main__":
         #   o3d.pipelines.registration.TransformationEstimationPointToPlane(),
         #   o3d.pipelines.registration.ICPConvergenceCriteria(max_iteration=1))
         if (first):
-            nxtAzPcd.orient_normals_consistent_tangent_plane(10)
+            #nxtAzPcd.orient_normals_consistent_tangent_plane(10)
             vis.add_geometry(nxtAzPcd)
             first=False
-        vis.update_geometry(azPcd)
+        #vis.update_geometry(azPcd)
         #vis.update_geometry(currAzPcd)
         vis.poll_events()
         vis.update_renderer()
