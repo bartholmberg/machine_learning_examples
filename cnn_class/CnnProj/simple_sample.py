@@ -39,6 +39,7 @@ if __name__ == "__main__":
 
     azPcd.points = o3d.utility.Vector3dVector(capture.depth_point_cloud.reshape((-1, 3)))
     azPcd.colors =  o3d.utility.Vector3dVector(capture.transformed_color[..., (2, 1, 0)].reshape((-1, 3)))
+    azPcd.estimate_normals()
     points = np.asarray(azPcd.points)
     colors = np.asarray(azPcd.colors)
     azPcd = azPcd.voxel_down_sample(voxel_size=0.02)
@@ -49,14 +50,23 @@ if __name__ == "__main__":
     vis.add_geometry(azPcd)
     flip_transform = [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]]
     currAzPcd=o3d.geometry.PointCloud()
+
+    threshold = 0.05
     first = True
     while 1:
         capture = k4a.get_capture()
 
         currAzPcd.points =  o3d.utility.Vector3dVector(capture.depth_point_cloud.reshape((-1, 3)))
         currAzPcd.colors =  o3d.utility.Vector3dVector( capture.transformed_color[..., (2, 1, 0)].reshape((-1, 3)) /255.0 )
+        currAzPcd.estimate_normals()
+
         #azPcd.points =  o3d.utility.Vector3dVector(capture.depth_point_cloud.reshape((-1, 3)))
         #azPcd.colors =  o3d.utility.Vector3dVector( capture.transformed_color[..., (2, 1, 0)].reshape((-1, 3)) /255.0 )
+        currAzPcd.transform(flip_transform)
+        reg_p2l = o3d.pipelines.registration.registration_icp(
+            currAzPcd, azPcd, threshold, np.identity(4), o3d.pipelines.registration.TransformationEstimationPointToPlane(), o3d.pipelines.registration.ICPConvergenceCriteria(max_iteration=1))
+        currAzPcd.transform(reg_p2l.transformation)
+        vis.update_geometry(currAzPcd)
 
 
         #currAzPcd = currAzPcd.voxel_down_sample(voxel_size=0.02)
@@ -64,13 +74,14 @@ if __name__ == "__main__":
         #   o3d.pipelines.registration.TransformationEstimationPointToPlane(),
         #   o3d.pipelines.registration.ICPConvergenceCriteria(max_iteration=1))
         if (first):
+            currAzPcd.orient_normals_consistent_tangent_plane(10)
             vis.add_geometry(currAzPcd)
             first=False
-        #vis.update_geometry(azPcd)
-        vis.update_geometry(currAzPcd)
+        vis.update_geometry(azPcd)
+        #vis.update_geometry(currAzPcd)
         vis.poll_events()
         vis.update_renderer()
-        #azPcd=currAzPcd
+        azPcd=currAzPcd
         #o3d.visualization.draw()
         #vis.run()
 
