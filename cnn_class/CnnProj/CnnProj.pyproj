@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{847a5c9b-6b8b-47a7-9acb-6651ef6cf106}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>simple_sample.py</StartupFile>
+    <StartupFile>slamPCLdemo.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -50,6 +50,7 @@
     <Compile Include="MedicalDemo2.py" />
     <Compile Include="moveLabeledData.py" />
     <Compile Include="physicalRender.py" />
+    <Compile Include="rabbit.py" />
     <Compile Include="setup.py" />
     <Compile Include="simple_sample.py" />
     <Compile Include="slamPCLdemo.py" />
